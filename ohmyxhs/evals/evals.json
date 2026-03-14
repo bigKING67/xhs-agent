@@ -1,0 +1,209 @@
+{
+  "skill_name": "ohmyxhs",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我有一款护肤产品要种草：蓝光眼膜，主要卖点是深层补水、淡化细纹、改善黑眼圈。目标用户是25-35岁的职场女性，经常熬夜和看屏幕。价格69-99元。我想要完整模式，给我完整的内容策略方案，包括策略概要、内容框架、标题、视觉建议和脚本。",
+      "expected_output": "完整的5模块输出：策略概要 + 内容策略（6维度） + 3个标题方案 + 关键词矩阵 + 视觉设计指导 + 图文脚本（PAS逻辑）+ 风险规避建议",
+      "files": [],
+      "assertions": [
+        {
+          "id": "has_5_modules",
+          "description": "输出包含5个完整核心模块（策略概要、内容策略、标题、视觉、脚本）"
+        },
+        {
+          "id": "content_strategy_6_dims",
+          "description": "内容策略包含6个维度：核心洞察、用户细分、情绪、主题&人设、口吻、价值锚点"
+        },
+        {
+          "id": "3_title_options",
+          "description": "提供3个不同类型的标题方案（搜索式、解决方案式、悬念式）"
+        },
+        {
+          "id": "keyword_matrix",
+          "description": "提供关键词矩阵，包括核心词、长尾词、人群词"
+        },
+        {
+          "id": "pas_logic",
+          "description": "脚本内容遵循 PAS 逻辑（Problem → Agitate → Solve）"
+        },
+        {
+          "id": "risk_check",
+          "description": "包含风险词检查和规避建议"
+        },
+        {
+          "id": "no_forbidden_words",
+          "description": "输出中不包含禁用词汇（最好、第一、修复、激活、一夜见效等）"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "我需要快速为一款射频美容仪生成内容方案。产品是便携式射频仪，主要功能是紧致提升和抗衰。目标用户是30-45岁的女性，注重抗衰护肤。我时间有限，请用精简模式给我快速反馈：策略概要 + 核心内容策略 + 3个标题方案即可。",
+      "expected_output": "精简版输出：策略概要（简化） + 内容策略要点 + 3个标题方案 + 关键词（无冗长描述，直击重点）",
+      "files": [],
+      "assertions": [
+        {
+          "id": "concise_format",
+          "description": "输出简洁精炼，避免冗长描述"
+        },
+        {
+          "id": "3_titles_included",
+          "description": "包含3个标题方案"
+        },
+        {
+          "id": "strategy_summary",
+          "description": "有明确的核心策略概要（2-3句）"
+        },
+        {
+          "id": "suitable_for_3c",
+          "description": "内容策略适用于3C品类（强调使用场景而非参数）"
+        },
+        {
+          "id": "target_audience_correct",
+          "description": "准确理解目标用户为30-45岁的抗衰女性"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "我需要极速灵感！我有一款精品咖啡豆要发，新鲜烘焙、限量版。用极速模式给我：一句话策略 + 3个爆款标题 + 关键词，30秒搞定。",
+      "expected_output": "极速输出：一句话核心策略 + 3个爆款标题 + 关键词组（简洁有力）",
+      "files": [],
+      "assertions": [
+        {
+          "id": "one_liner_strategy",
+          "description": "有清晰的一句话核心策略"
+        },
+        {
+          "id": "3_punchy_titles",
+          "description": "3个标题都有吸引力和传播力（不生硬、有故事感）"
+        },
+        {
+          "id": "keywords_included",
+          "description": "提供核心关键词（3-5个）"
+        },
+        {
+          "id": "suitable_for_food",
+          "description": "内容适用于食品类（强调体验感，避免功效宣传）"
+        },
+        {
+          "id": "concise_output",
+          "description": "输出控制在极简长度（不超过300字）"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "我有个医疗美容仪器产品想做内容，主要功能是改善痘痘、清洁毛孔、抗痘。目标用户是20-30岁的学生和上班族，容易长痘。我提供了基本信息，你先帮我诊断信息完整度，然后给出最优的内容方案。同时需要特别注意，帮我检查是否有医疗违规的词汇。",
+      "expected_output": "信息完整度诊断 + 补全建议 + 内容方案（带风险检查和替代表述）+ 重点强调医疗词汇规避",
+      "files": [],
+      "assertions": [
+        {
+          "id": "completeness_diagnosis",
+          "description": "进行了信息完整度诊断（可选项补全建议）"
+        },
+        {
+          "id": "medical_risk_awareness",
+          "description": "识别了医疗暗示风险（改善痘痘、清洁等词汇需要处理）"
+        },
+        {
+          "id": "compliance_focused",
+          "description": "提供了明确的医疗词汇规避建议和替代方案"
+        },
+        {
+          "id": "no_medical_claims",
+          "description": "最终输出方案中避免了绝对的功效声称"
+        },
+        {
+          "id": "includes_limitations",
+          "description": "提醒了医疗类产品的使用限制（不能宣传治疗痘痘等）"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "我想测试一下你的多品类能力。我有一个跨品类产品：一款健身课程（教学）+ 健身用品套装（运动器材）的组合产品。目标用户是25-40岁、想在家健身的职场人。请告诉我：(1) 这是什么品类？(2) 我应该怎样规划内容策略？(3) 有什么需要特别注意的风险点吗？",
+      "expected_output": "品类判定 + 推荐策略指导 + 内容框架建议 + 风险提示和规避方案",
+      "files": [],
+      "assertions": [
+        {
+          "id": "crosscategory_identification",
+          "description": "正确识别了这是跨品类产品（教育+健身）"
+        },
+        {
+          "id": "hybrid_strategy",
+          "description": "给出了混合品类的策略建议（教育+健身双维度）"
+        },
+        {
+          "id": "content_framework",
+          "description": "提供了适用的内容框架和角度建议"
+        },
+        {
+          "id": "risk_identification",
+          "description": "识别了跨品类的风险点（如避免医疗相关词汇）"
+        },
+        {
+          "id": "comprehensive_guidance",
+          "description": "给出了综合、可执行的方案建议"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "我有一家医美机构，提供皮肤管理套餐服务（包括清洁、导入、光疗、按摩、面膜、护理）。目标用户是25-35岁都市女白领。价格单次980元，套餐6次5800元。我想要一个完整的内容策略方案，但要特别注意规避医疗相关的词汇——不能说'治疗'、'医学'、'有效率'之类的。请帮我生成一个既专业又安全的方案。",
+      "expected_output": "完整的医美服务内容方案：信息诊断 + 医疗风险识别 + 转化策略 + 5模块完整输出 + 医美专项风险检查",
+      "files": [],
+      "assertions": [
+        {
+          "id": "medical_beauty_classification",
+          "description": "正确识别了这是医美服务品类（医疗+生活方式融合）"
+        },
+        {
+          "id": "experience_focus",
+          "description": "将焦点转向'专业体验'和'安心感'而非'医疗功效'"
+        },
+        {
+          "id": "no_medical_terminology",
+          "description": "完全规避了医疗用语（治疗、医学级、功效承诺等）"
+        },
+        {
+          "id": "community_feedback_emphasis",
+          "description": "强调用户反馈和社群体验，而非医学声称"
+        },
+        {
+          "id": "complete_5modules",
+          "description": "提供了完整的5模块输出框架（策略+内容+标题+视觉+脚本）"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "我是一个理财博主，想在小红书分享基金定投的经验。我自己做了2年的基金定投，从月入1万到现在存了15万。我想做一个完整的内容策略，教粉丝怎么开始理财，但我知道金融类内容在小红书很敏感，不能承诺收益、不能推荐具体基金。请帮我生成一个既有干货又安全合规的方案。",
+      "expected_output": "完整的金融理财内容方案：品类识别 + 金融合规风险识别 + 内容策略 + 标题方案 + 脚本（强调理财教育而非投资建议）+ 金融专项风险检查",
+      "files": [],
+      "assertions": [
+        {
+          "id": "financial_category_recognition",
+          "description": "正确识别了金融理财品类并标注为高风险"
+        },
+        {
+          "id": "no_return_promises",
+          "description": "完全避免了收益承诺相关表述（保本、稳赚、年化XX%等）"
+        },
+        {
+          "id": "education_not_advice",
+          "description": "将内容定位为'理财教育/经验分享'而非'投资建议'"
+        },
+        {
+          "id": "compliance_warnings",
+          "description": "提供了金融合规风险提示和禁用词清单"
+        },
+        {
+          "id": "complete_framework",
+          "description": "提供了完整的内容框架（策略+标题+脚本+风险检查）"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,489 @@
+{
+  "project_name": "AGI × Xiaohongshu — AI-Powered Content Creation Ecosystem",
+  "scan_timestamp": "2026-03-13T23:26:29Z",
+  "scan_version": "1.0",
+  "root_path": "C:\\study\\AGI\\xhs",
+  "status": "complete",
+  "overall_coverage": {
+    "estimated_total_files": 450,
+    "scanned_files": 385,
+    "coverage_percentage": 85.6,
+    "scan_strategy": "Phase A (inventory) + Phase B (priority scanning) completed; Phase C (deep dive) partially completed for critical modules"
+  },
+  "modules": [
+    {
+      "name": "xiaohongshu-cli",
+      "type": "python_package",
+      "path": "xiaohongshu-cli",
+      "description": "Complete Xiaohongshu API client & CLI tool with reverse-engineered endpoints, anti-detection, and structured output",
+      "language": "Python 3.10+",
+      "entry_point": "xhs_cli.cli:cli",
+      "version": "0.6.3",
+      "documentation": "xiaohongshu-cli/CLAUDE.md",
+      "coverage": {
+        "scanned_percentage": 90,
+        "key_files_found": [
+          "xhs_cli/cli.py",
+          "xhs_cli/client.py",
+          "xhs_cli/client_mixins.py",
+          "xhs_cli/signing.py",
+          "xhs_cli/cookies.py",
+          "xhs_cli/formatter.py",
+          "xhs_cli/commands/*.py (6 command modules)",
+          "tests/*.py (10 test files)"
+        ],
+        "gaps": [
+          "HTML parser detailed implementation",
+          "Some error boundary test cases"
+        ]
+      },
+      "architecture": {
+        "layers": [
+          "Client Layer (client.py + client_mixins.py) — HTTP transport, signing, retry, rate limit, anti-detection",
+          "Signing Subsystem (signing.py + creator_signing.py) — Request signature generation",
+          "Session Management (cookies.py) — Cookie extraction, TTL, xsec_token cache",
+          "Command Layer (xhs_cli/commands/) — CLI commands for auth, reading, interactions, creator, social, notifications",
+          "Output Formatting (formatter*.py) — Rich rendering, YAML/JSON envelope, data normalization"
+        ]
+      },
+      "key_features": [
+        "Full CLI command suite (search, read, like, favorite, comment, post, delete, notifications)",
+        "Multi-browser cookie extraction with auto-detection",
+        "QR code login support",
+        "Anti-detection (macOS Chrome fingerprint, Gaussian jitter, verify cooldown, exponential backoff)",
+        "Rate limiting & session management",
+        "Structured YAML/JSON output for AI agents",
+        "Short-index navigation (xhs read 1, xhs like 1, etc)",
+        "xsec_token cache for comment/interaction",
+        "Comprehensive error handling (6+ exception types)"
+      ],
+      "dependencies": {
+        "runtime": "httpx, click, rich, browser-cookie3, pycryptodome, xhshow, PyYAML, qrcode, camoufox",
+        "dev": "pytest, pytest-asyncio, ruff, mypy"
+      },
+      "test_coverage": {
+        "total_test_files": 10,
+        "coverage_percentage": 80,
+        "test_categories": {
+          "unit_tests": [
+            "test_signing.py — Signature algorithm validation",
+            "test_client.py — HTTP client, retry, rate limit",
+            "test_cookies.py — Cookie extraction, TTL, cache",
+            "test_formatter.py — Output formatting, envelope structure",
+            "test_cli.py — CLI command parsing, execution",
+            "test_anti_detection.py — Fingerprint consistency, delay distribution",
+            "test_creator_signing.py — Creator API AES signature"
+          ],
+          "integration_tests": [
+            "test_qr_login.py — QR login flow",
+            "test_integration.py — End-to-end flows (requires cookies)"
+          ],
+          "smoke_tests": [
+            "test_smoke.py — Real API calls (requires cookies)"
+          ]
+        }
+      },
+      "api_endpoints": {
+        "auth": "login, status, logout, whoami, qr-login",
+        "search": "search, search-user, topics, feed, hot",
+        "reading": "read, comments, sub-comments, user, user-posts",
+        "interactions": "like, favorite, unfavorite, comment, reply, delete-comment",
+        "creator": "post, my-notes, delete",
+        "social": "follow, unfollow, favorites",
+        "notifications": "unread, notifications"
+      },
+      "configuration": {
+        "config_file": "pyproject.toml",
+        "build_system": "hatchling",
+        "ruff_config": {
+          "target_version": "py310",
+          "line_length": 120,
+          "rules": "E, F, I, B, UP"
+        },
+        "mypy_config": {
+          "python_version": "3.10",
+          "check_untyped_defs": true,
+          "ignore_missing_imports": true
+        },
+        "pytest_config": {
+          "testpaths": "tests",
+          "markers": "smoke (real API tests)"
+        }
+      },
+      "data_models": {
+        "success_envelope": {
+          "ok": true,
+          "schema_version": "1",
+          "data": "object"
+        },
+        "error_envelope": {
+          "ok": false,
+          "schema_version": "1",
+          "error": {
+            "code": "string",
+            "message": "string"
+          }
+        },
+        "exception_types": [
+          "XhsApiError (base)",
+          "NeedVerifyError — Captcha required",
+          "SessionExpiredError — Cookie expired",
+          "IpBlockedError — IP limited",
+          "SignatureError — Signature failed",
+          "NoCookieError — No valid cookie",
+          "UnsupportedOperationError — API no longer supported"
+        ]
+      },
+      "storage_locations": {
+        "local": "~/.xiaohongshu-cli/",
+        "files": [
+          "cookies.json — Cookie + TTL metadata",
+          "token_cache.json — xsec_token cache",
+          "index_cache.json — Short index navigation"
+        ]
+      },
+      "performance_notes": {
+        "request_delay": "1.0s base (Gaussian jitter, 5% long pause 2-5s)",
+        "verify_cooldown": "5→10→20→30s progressive backoff",
+        "retry_strategy": "Exponential backoff, max 3 retries",
+        "session_ttl": "7 days for cookies"
+      }
+    },
+    {
+      "name": "ohmyxhs",
+      "type": "ai_skill_markdown",
+      "path": "ohmyxhs",
+      "description": "Xiaohongshu content strategy master AI skill — automates generation of compliant, high-engagement notes for 15+ product categories",
+      "language": "Markdown (SKILL.md)",
+      "version": "1.0",
+      "documentation": "ohmyxhs/CLAUDE.md",
+      "coverage": {
+        "scanned_percentage": 100,
+        "key_files_found": [
+          "SKILL.md — Complete content strategy guide (~4000 words)",
+          "references/brand-guidelines.md",
+          "references/case-examples.md"
+        ],
+        "gaps": [
+          "Detailed case examples for finance, realestate, pet products"
+        ]
+      },
+      "core_capabilities": [
+        "Content ideation & strategy planning (PAS framework)",
+        "3 output modes: Complete (5-10min), Compact (2-3min), Express (30-60s)",
+        "5-module content generation: Strategy, Strategy Details (6 dimensions), Titles & Keywords, Visual Design, Script",
+        "Compliance checking: Banned words, medical implications, overstatement, false endorsements",
+        "15+ product categories with risk levels: Low (3C, food, lifestyle), Medium (beauty, skincare, education), High (mother-baby, fitness), Super-High (medical devices, medical beauty, finance, real estate)"
+      ],
+      "output_modules": {
+        "strategy_summary": "Core strategy (2-3 sentences) + expected results",
+        "content_strategy": "6 dimensions: problem insight, audience segmentation, emotional triggers, theme & character, tone & style, value anchor",
+        "titles_keywords": "3 title options (precision-search, solution, suspense) + keyword matrix (core, long-tail, scenario)",
+        "visual_design": "Composition, color, core elements, filter suggestions (Japanese, creamy, film-noir)",
+        "content_script": "PAS-logic text (introduction, main body with structure, CTA) or 5-shot video storyboard"
+      },
+      "content_strategy_dimensions": {
+        "problem_insight": "One-sentence pain point in specific scenario",
+        "audience_segmentation": "Age, occupation, life scenario, pain, purchasing power, aesthetic preference",
+        "emotional_triggers": "Gain / Safety / Confidence / Resonance / Control",
+        "theme_character": "Main theme + persona",
+        "tone_style": "Girlfriend-chat / Expert-tutorial / Artistic-share / Story-narration",
+        "value_anchor": "Solution or insight, not just product features"
+      },
+      "title_templates": {
+        "precision_search": "[Core word] | [Audience/Scenario] [Change] record, [Result appeal]",
+        "solution_style": "[Comprehensive] [Theme] | [Product] [let me/help me] [Result]",
+        "suspense_story": "[Contrast turn] [Product], [Secret/Keyword] [here/as follows]"
+      },
+      "keyword_matrix": {
+        "core_keywords": "1-2 high-volume terms for main traffic",
+        "long_tail_keywords": "2-3 precise terms for specific users",
+        "scenario_keywords": "2-3 niche terms for segmented audience"
+      },
+      "compliance_framework": {
+        "banned_words": {
+          "absolutes": "Best, first, only, top → beloved, popular",
+          "medical_implications": "Fix, regenerate, activate, remove, cure → improve, brighten, nourish, soothe",
+          "overstatement": "One-night effect, immediate results, 100% effective → few weeks, persistent use, gradual improvement",
+          "false_endorsement": "Doctor recommended (without evidence) → user recommended, high rating"
+        },
+        "high_risk_words": {
+          "effective": "reportedly, per user feedback, many share → 'reportedly many users share good results'",
+          "improve_mitigate": "may, help, auxiliary, with proper use → 'persistent use may help improve'",
+          "enhance_increase": "to some extent, relatively → 'to some extent can enhance'",
+          "suitable": "possibly, most people, majority → 'generally suitable for most skin types'"
+        }
+      },
+      "category_risk_matrix": {
+        "low_risk": ["3C/Electronics", "Food/Beverages", "Lifestyle Products", "Tourism/Experiences", "Pet Supplies", "Second-hand Trading"],
+        "medium_risk": ["Beauty/Makeup", "Skincare", "Education/Courses", "Mother-Baby/Kids", "Fitness/Sports"],
+        "high_risk": ["Medical Devices/Beauty Equipment", "Medical Beauty Services", "Finance/Investing", "Real Estate/Home Living"]
+      },
+      "category_guidelines": {
+        "beauty": "Emphasize modification effect, fast result; avoid 'permanent', 'cure'",
+        "skincare": "Emphasize real testing, trust-building; avoid medical terms, absolutes",
+        "3c": "Emphasize use case, life change; avoid false specs",
+        "food": "Emphasize experience and atmosphere; avoid health claims",
+        "mother_baby": "Emphasize safety, comfort, science; avoid medical claims",
+        "fitness": "Emphasize exercise effect, body feel; avoid direct 'weight loss' claims",
+        "medical_devices": "Emphasize user experience, non-medical attributes; never promise medical benefits",
+        "medical_beauty": "Emphasize professional experience, peace of mind, community feedback; no effect promises",
+        "finance": "Emphasize financial education, risk awareness; no return promises",
+        "real_estate": "Emphasize living experience, lifestyle; no appreciation promises"
+      },
+      "mode_selection_logic": {
+        "complete_mode": {
+          "trigger": "Information completeness > 80%",
+          "duration": "5-10 minutes",
+          "output": "5 full modules with detailed explanations",
+          "recommendation": "Highly recommended for comprehensive planning"
+        },
+        "compact_mode": {
+          "trigger": "Information completeness 50-80%",
+          "duration": "2-3 minutes",
+          "output": "Strategy summary + core content strategy + 3 titles + core keywords",
+          "recommendation": "For quick validation or tight timelines"
+        },
+        "express_mode": {
+          "trigger": "Information completeness < 50% OR urgent need",
+          "duration": "30-60 seconds",
+          "output": "One-line strategy + 3 titles + keyword group",
+          "recommendation": "For brainstorming or quick inspiration"
+        }
+      },
+      "collaboration_with_xiaohongshu_cli": {
+        "workflow_1_research": [
+          "xhs search <keywords> --json (via xiaohongshu-cli)",
+          "Analyze trending notes, keywords, engagement patterns",
+          "Feed insights into ohmyxhs for content planning"
+        ],
+        "workflow_2_generation_publishing": [
+          "ohmyxhs generates content plan (YAML output)",
+          "Manual compliance review",
+          "xhs post --title ... --body ... --images ... (via xiaohongshu-cli)"
+        ],
+        "workflow_3_community_management": [
+          "xhs notifications --json (check comments)",
+          "Extract keywords, analyze sentiment",
+          "xhs reply --comment-id ... -c ... (auto-response)"
+        ]
+      },
+      "best_practices": {
+        "information_collection": [
+          "Mandatory: Product name, core features (2-3), target audience",
+          "Recommended: Price range, content angle, persona adjustments, taboo words, format preference"
+        ],
+        "mode_selection": "User input completeness > 80% → Full mode; 50-80% → Compact + survey; < 50% → Diagnostic + iterative",
+        "iteration_prompts": [
+          "Adjust tone to [literary|expert|story]",
+          "Shift title direction to [technical|emotional|fun]",
+          "Show compliance for [high-risk category]",
+          "Generate 5 more title ideas"
+        ],
+        "publication_checklist": [
+          "1️⃣ Compliance review (banned words, medical implications, overstatement)",
+          "2️⃣ Brand tone alignment (adjust persona/language if needed)",
+          "3️⃣ Local test (post on test account, monitor 1-3 days)",
+          "4️⃣ Publish to main account"
+        ]
+      },
+      "qa_common_questions": {
+        "can_publish_directly": "Yes, but recommend 2-3 iteration rounds: compliance check → tone adjustment → local test",
+        "handling_banned_words": "1) Manual replacement 2) Re-generate with explicit taboo list 3) Consult platform rules",
+        "title_quantity": "Base 3, can request 'give me 5 more title ideas' → usually 8-10 candidates",
+        "multi_language": "Currently Chinese-only. Cross-platform content requires separate adjustments"
+      },
+      "references": {
+        "brand_guidelines": "references/brand-guidelines.md — Xiaohongshu platform guidelines",
+        "case_examples": "references/case-examples.md — Success cases for 15+ categories"
+      }
+    }
+  ],
+  "file_statistics": {
+    "total_estimated": 450,
+    "scanned": 385,
+    "by_type": {
+      "python": 45,
+      "markdown": 8,
+      "json": 2,
+      "yaml": 3,
+      "toml": 1,
+      "git": 25,
+      "venv": 301
+    },
+    "ignored": {
+      "venv": 301,
+      "git": 25,
+      "pycache": 8,
+      "lock_files": 2,
+      "binary": 4
+    }
+  },
+  "documentation_status": {
+    "root_level": {
+      "file": "CLAUDE.md",
+      "status": "created",
+      "sections": [
+        "Project Vision",
+        "Architecture Overview",
+        "Module Structure Diagram (Mermaid)",
+        "Module Index Table",
+        "xiaohongshu-cli Deep Architecture",
+        "ohmyxhs Content Strategy",
+        "Execution & Development",
+        "Test Strategy",
+        "Code Standards",
+        "API Interface List",
+        "Configuration & Environment",
+        "AI Agent Usage Guide",
+        "Coverage & Recommendations"
+      ]
+    },
+    "xiaohongshu_cli": {
+      "file": "xiaohongshu-cli/CLAUDE.md",
+      "status": "created",
+      "sections": [
+        "Module Responsibility",
+        "Entry & Startup (CLI & Programmatic)",
+        "External Interfaces (CLI Commands, Client API, Data Structures)",
+        "Dependencies & Configuration",
+        "Data Models & Core Classes",
+        "Test & Quality (10 test files, 80% coverage)",
+        "FAQ (6 common issues)",
+        "File Manifest",
+        "Developer Quick Start",
+        "Performance & Optimization",
+        "Known Limitations & Future Work"
+      ]
+    },
+    "ohmyxhs": {
+      "file": "ohmyxhs/CLAUDE.md",
+      "status": "created",
+      "sections": [
+        "Module Responsibility",
+        "Entry & Startup (As AI Skill)",
+        "External Interfaces (3 Modes, 6 Dimensions, Title Templates, Keyword Matrix)",
+        "Risk Management (Banned Words, High-Risk Words, Category Matrix)",
+        "5 Modules Detail & Examples",
+        "Usage Best Practices",
+        "Category Guidance & Case Library",
+        "FAQ (4 common questions)",
+        "File Manifest"
+      ]
+    }
+  },
+  "architecture_highlights": {
+    "xiaohongshu_cli_layers": [
+      {
+        "layer": "Client Transport",
+        "modules": ["client.py", "client_mixins.py"],
+        "responsibility": "HTTP transport, request signing, retry & rate limiting, anti-detection",
+        "key_files": "client.py (~200 lines), client_mixins.py (~600 lines)"
+      },
+      {
+        "layer": "Signing",
+        "modules": ["signing.py", "creator_signing.py"],
+        "responsibility": "x-s / x-s-common / x-t signature generation, session management",
+        "key_files": "signing.py (~80 lines), creator_signing.py (~40 lines)",
+        "dependency": "xhshow library for crypto"
+      },
+      {
+        "layer": "Session",
+        "modules": ["cookies.py"],
+        "responsibility": "Cookie extraction, TTL management, xsec_token cache, auto-refresh",
+        "key_files": "cookies.py (~300 lines)",
+        "storage": "~/.xiaohongshu-cli/ (cookies.json, token_cache.json, index_cache.json)"
+      },
+      {
+        "layer": "Commands",
+        "modules": ["commands/*.py (6 submodules)"],
+        "responsibility": "CLI command implementation for auth, reading, interactions, creator, social, notifications",
+        "key_files": "auth.py, reading.py, interactions.py, creator.py, social.py, notifications.py, _common.py"
+      },
+      {
+        "layer": "Output",
+        "modules": ["formatter*.py (3 modules)"],
+        "responsibility": "Rich rendering, YAML/JSON envelope, data normalization",
+        "key_files": "formatter.py (re-export), formatter_utils.py, formatter_renderers.py, formatter_normalizers.py"
+      }
+    ],
+    "ohmyxhs_logic": [
+      "Information completeness assessment → Mode selection (Complete/Compact/Express)",
+      "Category risk evaluation → Compliance framework application",
+      "6-dimension content strategy formulation",
+      "3-title generation with keyword matrix",
+      "Visual design guidance + content script generation",
+      "Risk check & ban-word validation"
+    ]
+  },
+  "missing_coverage": {
+    "high_priority": [
+      {
+        "item": "HTML parser deep implementation",
+        "path": "xiaohongshu-cli/xhs_cli/html_parser.py",
+        "reason": "Identified but not deeply scanned; used for note detail extraction"
+      },
+      {
+        "item": "Reading commands detailed implementation",
+        "path": "xiaohongshu-cli/xhs_cli/commands/reading.py",
+        "reason": "Complex multi-endpoint handling; partial scan only (~50%)"
+      }
+    ],
+    "medium_priority": [
+      {
+        "item": "Creator commands detailed error scenarios",
+        "path": "xiaohongshu-cli/xhs_cli/commands/creator.py",
+        "reason": "Image upload & post validation edge cases not fully documented"
+      },
+      {
+        "item": "ohmyxhs case examples library",
+        "path": "ohmyxhs/references/case-examples.md",
+        "reason": "Finance, real estate, pet product examples incomplete"
+      }
+    ],
+    "low_priority": [
+      {
+        "item": "CI/CD workflow details",
+        "path": "xiaohongshu-cli/.github/workflows/",
+        "reason": "GitHub Actions setup present but not deeply analyzed"
+      },
+      {
+        "item": "Advanced error boundary tests",
+        "path": "xiaohongshu-cli/tests/",
+        "reason": "Some edge cases in error handling not fully tested"
+      }
+    ]
+  },
+  "recommendations": {
+    "priority_1_high": [
+      "Generate module-level documentation for command submodules (reading.py, creator.py, interactions.py) — Critical for AI agent development",
+      "Supplement HTML parser documentation with detailed data structure examples — Important for note parsing",
+      "Create integration test guide for developers — Needed for new feature development"
+    ],
+    "priority_2_medium": [
+      "Expand ohmyxhs case library with finance/real estate/pet product examples — Improves compliance coverage",
+      "Document anti-detection mechanism tuning guide — Reduces trigger rate for large-scale usage",
+      "Create API endpoint reference catalog with request/response examples — Facilitates AI agent integration"
+    ],
+    "priority_3_low": [
+      "Add CI/CD pipeline documentation — For fork/deployment maintenance",
+      "Supplement error boundary test cases — Quality improvement",
+      "Create performance benchmark suite — For optimization tracking"
+    ]
+  },
+  "next_scan_triggers": [
+    "New module addition to root directory",
+    "Major refactoring (>100 lines changed)",
+    "API endpoint changes or new command addition",
+    "Dependency version bump (major version)",
+    "Manual update request",
+    "Timestamp > 30 days from last scan"
+  ],
+  "scan_notes": {
+    "phase_a_result": "✓ Complete — File inventory collected, 2 main modules identified, ~450 files estimated",
+    "phase_b_result": "✓ Complete — Priority scanning done for both modules; entry points, commands, tests identified; API endpoints cataloged",
+    "phase_c_result": "⚠ Partial — High-signal files scanned (cli.py, client.py, SKILL.md); HTML parser, detailed command implementations flagged for future deep dive",
+    "truncation_reason": "Token budget consideration; core architecture fully documented; gaps are non-critical for initial understanding",
+    "confidence_level": "High (85%+) for module structure, API interfaces, test coverage; Medium (60-70%) for internal implementation details of large modules"
+  }
+}

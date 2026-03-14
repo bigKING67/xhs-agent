@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd C:/study/AGI/xhs && python3 ./.trellis/scripts/get_context.py)",
+      "Bash(cd C:/study/AGI/xhs && python3 -c \"import sys; sys.path.insert\\(0, './.trellis/scripts'\\); from common.paths import get_repo_root; print\\(get_repo_root\\(\\)\\)\" 2>&1)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}
