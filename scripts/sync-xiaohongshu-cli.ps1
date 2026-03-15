@@ -4,6 +4,8 @@ param(
     [switch]$AutoStash,
     [switch]$AllowDirty,
     [switch]$SkipChecks,
+    [switch]$SkipAnalysis,
+    [string]$AnalysisOutputFile = "",
     [switch]$NoCommitPointer
 )
 
@@ -34,6 +36,7 @@ function Invoke-Step {
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $submodule = Join-Path $root $SubmodulePath
 $xhsAgent = Join-Path $root "xhs-agent"
+$analysisScript = Join-Path $root "scripts/analyze-xiaohongshu-cli-update.ps1"
 
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     throw "git command not found in PATH."
@@ -44,6 +47,9 @@ if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
 
 if (-not (Test-Path $submodule)) {
     throw "Submodule path not found: $submodule"
+}
+if (-not $SkipAnalysis -and -not (Test-Path $analysisScript)) {
+    throw "Analysis script not found: $analysisScript"
 }
 
 Invoke-Step -Title "Init Submodule Mapping" -Action {
@@ -132,6 +138,27 @@ if (-not $SkipChecks) {
     }
 }
 
+if (-not $SkipAnalysis) {
+    Invoke-Step -Title "Analyze Upstream Impact" -Action {
+        $args = @(
+            "-NoProfile",
+            "-ExecutionPolicy", "Bypass",
+            "-File", $analysisScript,
+            "-SubmodulePath", $SubmodulePath,
+            "-Branch", $Branch,
+            "-BaseRef", $oldHead,
+            "-TargetRef", $newHead
+        )
+        if (-not [string]::IsNullOrWhiteSpace($AnalysisOutputFile)) {
+            $args += @("-OutputFile", $AnalysisOutputFile)
+        }
+        & powershell @args
+        if ($LASTEXITCODE -ne 0) {
+            throw "Upstream impact analysis failed."
+        }
+    }
+}
+
 Write-Host ""
 Write-Host "Done."
 Write-Host "Submodule: $SubmodulePath"
@@ -139,3 +166,4 @@ Write-Host "Old HEAD: $oldHead"
 Write-Host "New HEAD: $newHead"
 Write-Host "Dirty before sync: $isDirty"
 Write-Host "AutoStash used: $didStash"
+Write-Host "Analysis executed: $(-not $SkipAnalysis)"

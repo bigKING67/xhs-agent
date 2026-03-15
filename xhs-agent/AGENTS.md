@@ -11,6 +11,7 @@
 - Sync upstream `xiaohongshu-cli` (from repo root): `git submodule update --init --recursive && cd xiaohongshu-cli && git checkout main && git pull --ff-only origin main`
 - Sync upstream via script (recommended, from repo root): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-xiaohongshu-cli.ps1 -AutoStash`
 - Analyze upstream impact before patching (from repo root): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/analyze-xiaohongshu-cli-update.ps1`
+- Sync + analyze + export report (recommended CI-like flow): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-xiaohongshu-cli.ps1 -AutoStash -AnalysisOutputFile xhs-agent/data/upstream-analysis-latest.md`
 
 ## Project Conventions
 - Keep `xhs_agent/types.py` models and pipeline output fields consistent.
@@ -22,6 +23,9 @@
 
 ## Upstream Update Playbook (`xiaohongshu-cli`)
 - Goal: update upstream safely without losing local WIP in `xiaohongshu-cli/`.
+- Preferred one-command flow:
+  - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-xiaohongshu-cli.ps1 -AutoStash`
+  - Optional report file: append `-AnalysisOutputFile xhs-agent/data/upstream-analysis-latest.md`
 - If submodule has local changes, stash before pull:
   - `cd ../xiaohongshu-cli`
   - `git stash push -u -m "temp-before-upstream-sync"`
