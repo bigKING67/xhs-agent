@@ -47,14 +47,28 @@ class BatchCollector:
         )
     """
 
-    def __init__(self, config: Optional[CollectionConfig] = None):
+    def __init__(
+        self,
+        config: Optional[CollectionConfig] = None,
+        xhs_backend: Optional[str] = None,
+    ):
         self.config = config or CollectionConfig()
         self.logger = CollectionLogger()
+        self.xhs_backend = xhs_backend
 
         # 初始化各个采集器
-        self.note_aggregator = NoteAggregator(config)
-        self.comment_aggregator = CommentAggregator(config)
-        self.celeb_aggregator = CelebAggregator(config)
+        self.note_aggregator = NoteAggregator(
+            config,
+            xhs_backend=xhs_backend,
+        )
+        self.comment_aggregator = CommentAggregator(
+            config,
+            xhs_backend=xhs_backend,
+        )
+        self.celeb_aggregator = CelebAggregator(
+            config,
+            xhs_backend=xhs_backend,
+        )
 
     async def collect_all(
         self,
@@ -275,6 +289,7 @@ async def collect_comprehensive(
     keywords: List[str],
     celebrity_ids: Optional[List[str]] = None,
     config: Optional[CollectionConfig] = None,
+    xhs_backend: Optional[str] = None,
 ) -> dict:
     """
     执行完整的采集流程（一站式函数）。
@@ -298,7 +313,10 @@ async def collect_comprehensive(
         )
         print(f"Collected {result['summary']['total_notes']} notes")
     """
-    collector = BatchCollector(config)
+    collector = BatchCollector(
+        config,
+        xhs_backend=xhs_backend,
+    )
     try:
         return await collector.collect_all(
             keywords=keywords,

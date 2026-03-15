@@ -39,9 +39,11 @@ class CommentAggregator(BaseCollector[Comment]):
         self,
         config: Optional[CollectionConfig] = None,
         xhs_port: Optional[XhsPort] = None,
+        xhs_backend: Optional[str] = None,
     ):
         super().__init__(config)
         self._xhs = xhs_port
+        self._xhs_backend = xhs_backend
 
     @property
     def _xhs_client(self):
@@ -59,7 +61,7 @@ class CommentAggregator(BaseCollector[Comment]):
 
         try:
             logger.info("Initializing XHS API client for comment aggregator...")
-            self._xhs = create_xhs_port()
+            self._xhs = create_xhs_port(self._xhs_backend)
             logger.info("XHS API client initialized successfully")
         except ImportError:
             logger.error("xiaohongshu-cli not found")
@@ -324,6 +326,7 @@ class CommentAggregator(BaseCollector[Comment]):
 async def collect_note_with_comments(
     note: NoteData,
     config: Optional[CollectionConfig] = None,
+    xhs_backend: Optional[str] = None,
 ) -> NoteWithComments:
     """
     快速采集笔记及其评论。
@@ -338,7 +341,7 @@ async def collect_note_with_comments(
     示例:
         note_with_cmts = await collect_note_with_comments(note)
     """
-    aggregator = CommentAggregator(config)
+    aggregator = CommentAggregator(config, xhs_backend=xhs_backend)
     try:
         return await aggregator.collect_note_with_comments(note)
     finally:

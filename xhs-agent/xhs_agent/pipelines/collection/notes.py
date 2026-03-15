@@ -48,9 +48,11 @@ class NoteAggregator(BaseCollector[NoteData]):
         self,
         config: Optional[CollectionConfig] = None,
         xhs_port: Optional[XhsPort] = None,
+        xhs_backend: Optional[str] = None,
     ):
         super().__init__(config)
         self._xhs = xhs_port  # 将在初始化时连接 xiaohongshu-cli
+        self._xhs_backend = xhs_backend
 
     @property
     def _xhs_client(self):
@@ -72,7 +74,7 @@ class NoteAggregator(BaseCollector[NoteData]):
 
         try:
             logger.info("Initializing XHS API client...")
-            self._xhs = create_xhs_port()
+            self._xhs = create_xhs_port(self._xhs_backend)
             logger.info("XHS API client initialized successfully")
         except ImportError:
             logger.error("xiaohongshu-cli not found. Please install it first.")
@@ -457,6 +459,7 @@ class NoteAggregator(BaseCollector[NoteData]):
 async def collect_notes_by_keywords(
     keywords: List[str],
     config: Optional[CollectionConfig] = None,
+    xhs_backend: Optional[str] = None,
 ) -> List[NoteData]:
     """
     快速采集笔记。
@@ -471,7 +474,7 @@ async def collect_notes_by_keywords(
     示例:
         notes = await collect_notes_by_keywords(['护肤', '眼膜'])
     """
-    aggregator = NoteAggregator(config)
+    aggregator = NoteAggregator(config, xhs_backend=xhs_backend)
     try:
         return await aggregator.collect_async(keywords=keywords)
     finally:

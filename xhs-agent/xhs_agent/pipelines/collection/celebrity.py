@@ -45,9 +45,11 @@ class CelebAggregator(BaseCollector[CelebData]):
         self,
         config: Optional[CollectionConfig] = None,
         xhs_port: Optional[XhsPort] = None,
+        xhs_backend: Optional[str] = None,
     ):
         super().__init__(config)
         self._xhs = xhs_port
+        self._xhs_backend = xhs_backend
 
     @property
     def _xhs_client(self):
@@ -65,7 +67,7 @@ class CelebAggregator(BaseCollector[CelebData]):
 
         try:
             logger.info("Initializing XHS API client for celeb aggregator...")
-            self._xhs = create_xhs_port()
+            self._xhs = create_xhs_port(self._xhs_backend)
             logger.info("XHS API client initialized successfully")
         except ImportError:
             logger.error("xiaohongshu-cli not found")
@@ -437,6 +439,7 @@ class CelebAggregator(BaseCollector[CelebData]):
 async def collect_celebs_by_ids(
     celeb_ids: List[str],
     config: Optional[CollectionConfig] = None,
+    xhs_backend: Optional[str] = None,
 ) -> List[CelebData]:
     """
     快速采集多个达人的信息。
@@ -451,7 +454,7 @@ async def collect_celebs_by_ids(
     示例:
         celebs = await collect_celebs_by_ids(['user_1', 'user_2'])
     """
-    aggregator = CelebAggregator(config)
+    aggregator = CelebAggregator(config, xhs_backend=xhs_backend)
     try:
         return await aggregator.collect_batch_async(celeb_ids)
     finally:

@@ -276,6 +276,31 @@ config = CollectionConfig(
 aggregator = NoteAggregator(config)
 ```
 
+### XHS 后端选择
+
+采集器默认使用 `xhs_cli`，也支持通过参数或环境变量切换：
+
+```python
+from xhs_agent.pipelines.collection import BatchCollector
+from xhs_agent.integrations import register_xhs_backend
+from my_project.my_backend import create_port
+
+# 显式指定后端名（已注册）
+collector = BatchCollector(xhs_backend="xhs_cli")
+
+# 运行时注册自定义后端
+register_xhs_backend("my_backend", create_port)
+collector = BatchCollector(xhs_backend="my_backend")
+```
+
+```bash
+# 通过环境变量选择后端
+export XHS_AGENT_XHS_BACKEND=xhs_cli
+
+# 或使用动态工厂：python:module:function
+export XHS_AGENT_XHS_BACKEND=python:my_project.my_backend:create_port
+```
+
 ### 全局配置
 
 在 `config.py` 中配置：
