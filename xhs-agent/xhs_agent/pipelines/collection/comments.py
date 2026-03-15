@@ -13,6 +13,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, List, Optional
 
+from xhs_agent.integrations import XhsPort, create_xhs_port
 from xhs_agent.types import Comment, CollectionConfig, NoteWithComments, NoteData
 from .base import BaseCollector
 
@@ -34,19 +35,31 @@ class CommentAggregator(BaseCollector[Comment]):
             comments = await aggregator.collect_async(note_id='note_123')
     """
 
-    def __init__(self, config: Optional[CollectionConfig] = None):
+    def __init__(
+        self,
+        config: Optional[CollectionConfig] = None,
+        xhs_port: Optional[XhsPort] = None,
+    ):
         super().__init__(config)
-        self._xhs_client = None
+        self._xhs = xhs_port
+
+    @property
+    def _xhs_client(self):
+        """向后兼容旧测试与外部注入方式。"""
+        return self._xhs
+
+    @_xhs_client.setter
+    def _xhs_client(self, value):
+        self._xhs = value
 
     async def init_xhs_client(self):
         """初始化小红书 API 客户端"""
-        try:
-            from xhs_cli.cookies import get_cookies
-            from xhs_cli.client import XhsClient
+        if self._xhs is not None:
+            return
 
+        try:
             logger.info("Initializing XHS API client for comment aggregator...")
-            _browser, cookies = get_cookies()
-            self._xhs_client = XhsClient(cookies)
+            self._xhs = create_xhs_port()
             logger.info("XHS API client initialized successfully")
         except ImportError:
             logger.error("xiaohongshu-cli not found")
@@ -54,6 +67,13 @@ class CommentAggregator(BaseCollector[Comment]):
         except Exception as e:
             logger.error("Failed to initialize XHS API client: %s", str(e))
             raise
+
+    async def _ensure_xhs(self) -> XhsPort:
+        if self._xhs is None:
+            await self.init_xhs_client()
+        if self._xhs is None:
+            raise RuntimeError("XHS API client is not initialized")
+        return self._xhs
 
     async def collect_async(
         self,
@@ -70,8 +90,7 @@ class CommentAggregator(BaseCollector[Comment]):
         Returns:
             评论列表
         """
-        if not self._xhs_client:
-            await self.init_xhs_client()
+        await self._ensure_xhs()
 
         if max_comments is None:
             max_comments = self.config.max_comments_per_note
@@ -173,8 +192,9 @@ class CommentAggregator(BaseCollector[Comment]):
             评论列表
         """
         try:
+            client = await self._ensure_xhs()
             max_pages = max(1, (limit + 19) // 20)
-            result = self._xhs_client.get_all_comments(note_id, max_pages=max_pages)
+            result = client.get_all_comments(note_id, max_pages=max_pages)
             return result.get("comments", [])
         except Exception as e:
             logger.error("Get note comments API error: %s", str(e))
@@ -292,9 +312,9 @@ class CommentAggregator(BaseCollector[Comment]):
 
     async def close(self) -> None:
         """关闭采集器"""
-        if self._xhs_client:
+        if self._xhs:
             try:
-                self._xhs_client.close()
+                self._xhs.close()
                 logger.info("XHS API client closed")
             except Exception as e:
                 logger.error("Error closing XHS API client: %s", str(e))

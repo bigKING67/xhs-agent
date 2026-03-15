@@ -13,6 +13,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, List, Optional
 
+from xhs_agent.integrations import XhsPort, create_xhs_port
 from xhs_agent.types import NoteData, CollectionConfig
 from .base import BaseCollector
 
@@ -43,9 +44,22 @@ class NoteAggregator(BaseCollector[NoteData]):
         notes = sync_agg.collect(['note_1', 'note_2'])
     """
 
-    def __init__(self, config: Optional[CollectionConfig] = None):
+    def __init__(
+        self,
+        config: Optional[CollectionConfig] = None,
+        xhs_port: Optional[XhsPort] = None,
+    ):
         super().__init__(config)
-        self._xhs_client = None  # 将在初始化时连接 xiaohongshu-cli
+        self._xhs = xhs_port  # 将在初始化时连接 xiaohongshu-cli
+
+    @property
+    def _xhs_client(self):
+        """向后兼容旧测试与外部注入方式。"""
+        return self._xhs
+
+    @_xhs_client.setter
+    def _xhs_client(self, value):
+        self._xhs = value
 
     async def init_xhs_client(self):
         """
@@ -53,13 +67,12 @@ class NoteAggregator(BaseCollector[NoteData]):
 
         这将导入 xiaohongshu-cli 并创建客户端实例。
         """
-        try:
-            from xhs_cli.cookies import get_cookies
-            from xhs_cli.client import XhsClient
+        if self._xhs is not None:
+            return
 
+        try:
             logger.info("Initializing XHS API client...")
-            _browser, cookies = get_cookies()
-            self._xhs_client = XhsClient(cookies)
+            self._xhs = create_xhs_port()
             logger.info("XHS API client initialized successfully")
         except ImportError:
             logger.error("xiaohongshu-cli not found. Please install it first.")
@@ -67,6 +80,13 @@ class NoteAggregator(BaseCollector[NoteData]):
         except Exception as e:
             logger.error("Failed to initialize XHS API client: %s", str(e))
             raise
+
+    async def _ensure_xhs(self) -> XhsPort:
+        if self._xhs is None:
+            await self.init_xhs_client()
+        if self._xhs is None:
+            raise RuntimeError("XHS API client is not initialized")
+        return self._xhs
 
     async def collect_async(
         self,
@@ -85,8 +105,7 @@ class NoteAggregator(BaseCollector[NoteData]):
         Returns:
             采集到的笔记列表
         """
-        if not self._xhs_client:
-            await self.init_xhs_client()
+        await self._ensure_xhs()
 
         if max_results is None:
             max_results = self.config.max_notes_per_search
@@ -150,8 +169,7 @@ class NoteAggregator(BaseCollector[NoteData]):
         Returns:
             笔记数据，或失败时返回 None
         """
-        if not self._xhs_client:
-            await self.init_xhs_client()
+        await self._ensure_xhs()
 
         try:
             logger.debug("Fetching note details for: %s", note_id)
@@ -193,13 +211,14 @@ class NoteAggregator(BaseCollector[NoteData]):
         """
         # xhs_cli 客户端是同步接口，这里做轻量分页封装。
         try:
+            client = await self._ensure_xhs()
             items: list[dict[str, Any]] = []
             page = 1
             remaining = max(limit, 1)
 
             while remaining > 0:
                 page_size = min(20, remaining)
-                result = self._xhs_client.search_notes(
+                result = client.search_notes(
                     keyword=keyword,
                     sort=sort,
                     page=page,
@@ -238,7 +257,8 @@ class NoteAggregator(BaseCollector[NoteData]):
             笔记详情字典
         """
         try:
-            result = self._xhs_client.get_note_detail(note_id)
+            client = await self._ensure_xhs()
+            result = client.get_note_detail(note_id)
             if not isinstance(result, dict):
                 return None
             items = result.get("items")
@@ -425,9 +445,9 @@ class NoteAggregator(BaseCollector[NoteData]):
 
     async def close(self) -> None:
         """关闭采集器，释放资源"""
-        if self._xhs_client:
+        if self._xhs:
             try:
-                self._xhs_client.close()
+                self._xhs.close()
                 logger.info("XHS API client closed")
             except Exception as e:
                 logger.error("Error closing XHS API client: %s", str(e))

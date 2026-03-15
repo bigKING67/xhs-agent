@@ -1,4 +1,4 @@
-"""Integration-style tests for collector adapters with mocked xhs_cli clients."""
+"""Integration-style tests for collector adapters with mocked XHS ports."""
 
 from __future__ import annotations
 
@@ -58,6 +58,9 @@ class _DummyNoteClient:
             ]
         }
 
+    def close(self) -> None:
+        return None
+
 
 class _DummyCommentClient:
     def __init__(self) -> None:
@@ -77,6 +80,9 @@ class _DummyCommentClient:
                 }
             ]
         }
+
+    def close(self) -> None:
+        return None
 
 
 class _DummyCelebClient:
@@ -99,12 +105,17 @@ class _DummyCelebClient:
             }
         return {"notes": [], "has_more": False, "cursor": ""}
 
+    def get_user_info(self, user_id: str) -> dict:
+        return {"user_info": {"user_id": user_id, "nickname": "tester"}}
+
+    def close(self) -> None:
+        return None
+
 
 class TestCollectorsIntegration(unittest.TestCase):
     def test_note_search_pagination_and_limit(self) -> None:
-        aggregator = NoteAggregator()
         dummy = _DummyNoteClient()
-        aggregator._xhs_client = dummy
+        aggregator = NoteAggregator(xhs_port=dummy)
 
         result = asyncio.run(aggregator._search_notes(keyword="kw", sort="general", limit=3))
 
@@ -117,8 +128,7 @@ class TestCollectorsIntegration(unittest.TestCase):
         self.assertEqual(dummy.search_calls[1]["page"], 2)
 
     def test_note_detail_extracts_first_note_card(self) -> None:
-        aggregator = NoteAggregator()
-        aggregator._xhs_client = _DummyNoteClient()
+        aggregator = NoteAggregator(xhs_port=_DummyNoteClient())
 
         detail = asyncio.run(aggregator._get_note_detail("note-x"))
         self.assertIsInstance(detail, dict)
@@ -132,9 +142,8 @@ class TestCollectorsIntegration(unittest.TestCase):
             asyncio.run(aggregator.collect_single("comment-id"))
 
     def test_comment_fetch_uses_paged_endpoint(self) -> None:
-        aggregator = CommentAggregator()
         dummy = _DummyCommentClient()
-        aggregator._xhs_client = dummy
+        aggregator = CommentAggregator(xhs_port=dummy)
 
         comments = asyncio.run(aggregator._get_note_comments("note-1", limit=45))
 
@@ -143,9 +152,8 @@ class TestCollectorsIntegration(unittest.TestCase):
         self.assertEqual(comments[0]["id"], "comment-1")
 
     def test_celeb_notes_pagination(self) -> None:
-        aggregator = CelebAggregator()
         dummy = _DummyCelebClient()
-        aggregator._xhs_client = dummy
+        aggregator = CelebAggregator(xhs_port=dummy)
 
         notes = asyncio.run(aggregator._get_user_notes("user-1", limit=5))
 

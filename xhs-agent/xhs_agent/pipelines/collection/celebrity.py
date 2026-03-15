@@ -13,6 +13,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional, List
 
+from xhs_agent.integrations import XhsPort, create_xhs_port
 from xhs_agent.types import (
     CelebData,
     ContentStyle,
@@ -40,19 +41,31 @@ class CelebAggregator(BaseCollector[CelebData]):
             celebs = await aggregator.collect_batch_async(['user_1', 'user_2'])
     """
 
-    def __init__(self, config: Optional[CollectionConfig] = None):
+    def __init__(
+        self,
+        config: Optional[CollectionConfig] = None,
+        xhs_port: Optional[XhsPort] = None,
+    ):
         super().__init__(config)
-        self._xhs_client = None
+        self._xhs = xhs_port
+
+    @property
+    def _xhs_client(self):
+        """向后兼容旧测试与外部注入方式。"""
+        return self._xhs
+
+    @_xhs_client.setter
+    def _xhs_client(self, value):
+        self._xhs = value
 
     async def init_xhs_client(self):
         """初始化小红书 API 客户端"""
-        try:
-            from xhs_cli.cookies import get_cookies
-            from xhs_cli.client import XhsClient
+        if self._xhs is not None:
+            return
 
+        try:
             logger.info("Initializing XHS API client for celeb aggregator...")
-            _browser, cookies = get_cookies()
-            self._xhs_client = XhsClient(cookies)
+            self._xhs = create_xhs_port()
             logger.info("XHS API client initialized successfully")
         except ImportError:
             logger.error("xiaohongshu-cli not found")
@@ -60,6 +73,13 @@ class CelebAggregator(BaseCollector[CelebData]):
         except Exception as e:
             logger.error("Failed to initialize XHS API client: %s", str(e))
             raise
+
+    async def _ensure_xhs(self) -> XhsPort:
+        if self._xhs is None:
+            await self.init_xhs_client()
+        if self._xhs is None:
+            raise RuntimeError("XHS API client is not initialized")
+        return self._xhs
 
     async def collect_single(
         self,
@@ -76,8 +96,7 @@ class CelebAggregator(BaseCollector[CelebData]):
         Returns:
             达人数据对象
         """
-        if not self._xhs_client:
-            await self.init_xhs_client()
+        await self._ensure_xhs()
 
         try:
             logger.debug("Fetching celeb data for: %s", celeb_id)
@@ -112,8 +131,9 @@ class CelebAggregator(BaseCollector[CelebData]):
             用户信息字典
         """
         try:
+            client = await self._ensure_xhs()
             # 调用 xiaohongshu-cli 的用户端点
-            result = self._xhs_client.get_user_info(user_id)
+            result = client.get_user_info(user_id)
             return result
         except Exception as e:
             logger.error("Get user info API error: %s", str(e))
@@ -135,10 +155,11 @@ class CelebAggregator(BaseCollector[CelebData]):
             笔记列表
         """
         try:
+            client = await self._ensure_xhs()
             notes: list[dict] = []
             cursor = ""
             while len(notes) < limit:
-                result = self._xhs_client.get_user_notes(user_id, cursor=cursor)
+                result = client.get_user_notes(user_id, cursor=cursor)
                 page_notes = []
                 if isinstance(result, dict):
                     page_notes = (
@@ -404,9 +425,9 @@ class CelebAggregator(BaseCollector[CelebData]):
 
     async def close(self) -> None:
         """关闭采集器"""
-        if self._xhs_client:
+        if self._xhs:
             try:
-                self._xhs_client.close()
+                self._xhs.close()
                 logger.info("XHS API client closed")
             except Exception as e:
                 logger.error("Error closing XHS API client: %s", str(e))
