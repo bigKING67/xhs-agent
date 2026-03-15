@@ -19,8 +19,8 @@
 
 ```bash
 cd xhs-agent
-pip install -e ".[dev]"
-pytest -v
+uv sync
+uv run pytest -v
 ```
 
 ## 致谢
@@ -30,4 +30,3 @@ pytest -v
 - [jackwener/xiaohongshu-cli](https://github.com/jackwener/xiaohongshu-cli)
 
 感谢原作者与社区贡献。
-

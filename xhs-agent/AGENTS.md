@@ -5,15 +5,16 @@
 - Keep changes focused on data collection pipelines, models, storage, and integration boundaries.
 
 ## Commands
-- Install package (dev): `pip install -e ".[dev]"`
-- Run tests: `pytest -v`
-- Run a specific test file: `pytest tests/test_imports.py -v`
+- Install package (dev): `uv sync`
+- Run tests: `uv run pytest -v`
+- Run a specific test file: `uv run pytest tests/test_imports.py -v`
 
 ## Project Conventions
 - Keep `xhs_agent/types.py` models and pipeline output fields consistent.
 - Prefer root-cause fixes in collectors and transformers instead of patching call sites.
 - Validate external payloads at boundaries before persisting to storage.
 - Do not hardcode cookies, tokens, or environment-specific secrets.
+- Python environment/dependency/command execution defaults to `uv` (`uv sync`, `uv run ...`).
 
 ## Debug-First
 - Avoid silent downgrade paths that hide upstream issues.

@@ -45,8 +45,8 @@ Use this template before implementation when requirements are fuzzy or complex:
 - `xiaohongshu-cli` type-check: `cd xiaohongshu-cli && uv run mypy xhs_cli/`
 - `xiaohongshu-cli` tests (default): `cd xiaohongshu-cli && uv run pytest tests/ -v -m "not smoke"`
 - `xiaohongshu-cli` smoke tests: `cd xiaohongshu-cli && uv run pytest tests/ -v -m smoke`
-- `xhs-agent` install dev deps: `cd xhs-agent && pip install -e ".[dev]"`
-- `xhs-agent` tests: `cd xhs-agent && pytest -v`
+- `xhs-agent` install dev deps: `cd xhs-agent && uv sync`
+- `xhs-agent` tests: `cd xhs-agent && uv run pytest -v`
 - `codex` instruction smoke: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/codex-smoke.ps1 -Profile fast -Subdir xiaohongshu-cli`
 - pre-delivery checklist: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/codex-checklist.ps1 -Target all`
 
@@ -55,6 +55,7 @@ Use this template before implementation when requirements are fuzzy or complex:
 - Keep patches minimal and focused; avoid unrelated churn.
 - Preserve observability and avoid silent fallback that hides failures.
 - Add or update tests when behavior changes.
+- Use `uv` as the default Python workflow for env/deps/run (avoid `pip`/manual `venv` unless explicitly requested).
 - For complex work, plan first (Plan mode or `PLANS.md`) before editing.
 - Before final delivery, run a self-review using `code_review.md`.
 
