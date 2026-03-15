@@ -9,6 +9,7 @@
 - Run tests: `uv run pytest -v`
 - Run a specific test file: `uv run pytest tests/test_imports.py -v`
 - Sync upstream `xiaohongshu-cli` (from repo root): `git submodule update --init --recursive && cd xiaohongshu-cli && git checkout main && git pull --ff-only origin main`
+- Sync upstream via script (recommended, from repo root): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-xiaohongshu-cli.ps1 -AutoStash`
 
 ## Project Conventions
 - Keep `xhs_agent/types.py` models and pipeline output fields consistent.
@@ -35,6 +36,8 @@
   - `cd ../xiaohongshu-cli && uv sync`
   - `cd ../xhs-agent && uv sync`
   - `uv run pytest -v`
+- On Windows terminals using GBK code page, run CLI help checks with UTF-8 mode:
+  - PowerShell: `$env:PYTHONUTF8='1'; uv run xhs --help`
 - If failures appear, prioritize adapter boundary:
   - `xhs_agent/integrations/xhs_factory.py`
   - `xhs_agent/pipelines/collection/notes.py`
