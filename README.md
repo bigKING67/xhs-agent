@@ -23,6 +23,8 @@ uv sync
 uv run pytest -v
 ```
 
+依赖与版本通过 `xhs-agent/pyproject.toml` + `xhs-agent/uv.lock` 统一管理，`uv sync` 可一键复现环境。
+
 ## 致谢
 
 本项目在工程实现中参考并借鉴了以下开源项目（属于二次开发/扩展场景）：

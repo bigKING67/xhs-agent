@@ -15,6 +15,7 @@
 - Validate external payloads at boundaries before persisting to storage.
 - Do not hardcode cookies, tokens, or environment-specific secrets.
 - Python environment/dependency/command execution defaults to `uv` (`uv sync`, `uv run ...`).
+- Keep dependency config reproducible: update `pyproject.toml` and commit refreshed `uv.lock` whenever dependencies change.
 
 ## Debug-First
 - Avoid silent downgrade paths that hide upstream issues.

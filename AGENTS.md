@@ -56,6 +56,7 @@ Use this template before implementation when requirements are fuzzy or complex:
 - Preserve observability and avoid silent fallback that hides failures.
 - Add or update tests when behavior changes.
 - Use `uv` as the default Python workflow for env/deps/run (avoid `pip`/manual `venv` unless explicitly requested).
+- Keep Python dependency metadata reproducible: maintain `pyproject.toml` and commit `uv.lock` after dependency changes.
 - For complex work, plan first (Plan mode or `PLANS.md`) before editing.
 - Before final delivery, run a self-review using `code_review.md`.
 

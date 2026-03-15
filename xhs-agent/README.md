@@ -38,6 +38,8 @@ cd ../xhs-agent
 uv sync
 ```
 
+本项目使用 `pyproject.toml` + `uv.lock` 固定依赖版本，推荐统一使用 `uv sync` / `uv run ...`。
+
 ### 基础使用
 
 #### 1️⃣ 采集笔记
