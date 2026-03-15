@@ -8,6 +8,7 @@
 - Install package (dev): `uv sync`
 - Run tests: `uv run pytest -v`
 - Run a specific test file: `uv run pytest tests/test_imports.py -v`
+- Sync upstream `xiaohongshu-cli` (from repo root): `git submodule update --init --recursive && cd xiaohongshu-cli && git checkout main && git pull --ff-only origin main`
 
 ## Project Conventions
 - Keep `xhs_agent/types.py` models and pipeline output fields consistent.
@@ -16,6 +17,39 @@
 - Do not hardcode cookies, tokens, or environment-specific secrets.
 - Python environment/dependency/command execution defaults to `uv` (`uv sync`, `uv run ...`).
 - Keep dependency config reproducible: update `pyproject.toml` and commit refreshed `uv.lock` whenever dependencies change.
+
+## Upstream Update Playbook (`xiaohongshu-cli`)
+- Goal: update upstream safely without losing local WIP in `xiaohongshu-cli/`.
+- If submodule has local changes, stash before pull:
+  - `cd ../xiaohongshu-cli`
+  - `git stash push -u -m "temp-before-upstream-sync"`
+  - `git pull --ff-only origin main`
+  - `git stash apply` (resolve conflicts, prefer local WIP unless explicitly replacing)
+- If submodule is clean, fast path:
+  - `cd ../xiaohongshu-cli && git checkout main && git pull --ff-only origin main`
+- After update, go back to root and decide whether to record pointer bump:
+  - `cd .. && git add xiaohongshu-cli && git commit -m "chore: bump xiaohongshu-cli submodule"`
+
+## Post-Update Actions (Required)
+- Always run compatibility checks after upstream sync:
+  - `cd ../xiaohongshu-cli && uv sync`
+  - `cd ../xhs-agent && uv sync`
+  - `uv run pytest -v`
+- If failures appear, prioritize adapter boundary:
+  - `xhs_agent/integrations/xhs_factory.py`
+  - `xhs_agent/pipelines/collection/notes.py`
+  - `xhs_agent/pipelines/collection/comments.py`
+  - `xhs_agent/pipelines/collection/celebrity.py`
+  - `tests/test_collectors_integration.py`
+
+## When To Adjust Secondary Development
+- Usually no code change needed in `xhs-agent` when upstream changes are only docs/CI/lockfile.
+- Re-evaluate and patch `xhs-agent` when upstream touches API behavior or payload shape, especially:
+  - `xhs_cli/client.py`
+  - `xhs_cli/client_mixins.py`
+  - `xhs_cli/commands/reading.py`
+  - structured output/schema related files
+- If upstream introduces a breaking dependency/version floor, update `xhs-agent` dependency constraints and refresh `uv.lock`.
 
 ## Debug-First
 - Avoid silent downgrade paths that hide upstream issues.
