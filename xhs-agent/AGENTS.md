@@ -10,6 +10,7 @@
 - Run a specific test file: `uv run pytest tests/test_imports.py -v`
 - Sync upstream `xiaohongshu-cli` (from repo root): `git submodule update --init --recursive && cd xiaohongshu-cli && git checkout main && git pull --ff-only origin main`
 - Sync upstream via script (recommended, from repo root): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-xiaohongshu-cli.ps1 -AutoStash`
+- Analyze upstream impact before patching (from repo root): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/analyze-xiaohongshu-cli-update.ps1`
 
 ## Project Conventions
 - Keep `xhs_agent/types.py` models and pipeline output fields consistent.
@@ -53,6 +54,7 @@
   - `xhs_cli/commands/reading.py`
   - structured output/schema related files
 - If upstream introduces a breaking dependency/version floor, update `xhs-agent` dependency constraints and refresh `uv.lock`.
+- Use `scripts/analyze-xiaohongshu-cli-update.ps1` to classify risk first, then decide whether patch is required.
 
 ## Debug-First
 - Avoid silent downgrade paths that hide upstream issues.
