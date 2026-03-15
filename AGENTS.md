@@ -25,7 +25,7 @@ Keep this managed block so 'trellis update' can refresh the instructions.
 - Keep changes scoped to the requested subproject; avoid cross-project refactors unless requested.
 
 ### Repository Map
-- `xiaohongshu-cli/`: production CLI package (`xhs_cli/`) and tests.
+- `xiaohongshu-cli/`: production CLI package (`xhs_cli/`) and tests (git submodule, upstream: `jackwener/xiaohongshu-cli`).
 - `xhs-agent/`: data collection and analysis package (`xhs_agent/`) and tests.
 - `ohmyxhs/`: strategy skill assets and references.
 - `.trellis/`: workflow, task, and spec orchestration docs.
@@ -45,6 +45,7 @@ Use this template before implementation when requirements are fuzzy or complex:
 - `xiaohongshu-cli` type-check: `cd xiaohongshu-cli && uv run mypy xhs_cli/`
 - `xiaohongshu-cli` tests (default): `cd xiaohongshu-cli && uv run pytest tests/ -v -m "not smoke"`
 - `xiaohongshu-cli` smoke tests: `cd xiaohongshu-cli && uv run pytest tests/ -v -m smoke`
+- `xiaohongshu-cli` sync upstream: `git submodule update --init --recursive && cd xiaohongshu-cli && git checkout main && git pull --ff-only origin main`
 - `xhs-agent` install dev deps: `cd xhs-agent && uv sync`
 - `xhs-agent` tests: `cd xhs-agent && uv run pytest -v`
 - `codex` instruction smoke: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/codex-smoke.ps1 -Profile fast -Subdir xiaohongshu-cli`

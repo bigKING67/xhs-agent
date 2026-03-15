@@ -1,0 +1,4 @@
+[submodule "xiaohongshu-cli"]
+	path = xiaohongshu-cli
+	url = https://github.com/jackwener/xiaohongshu-cli.git
+	branch = main
