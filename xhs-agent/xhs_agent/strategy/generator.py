@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import logging
-import asyncio
 from typing import Optional
 
 from xhs_agent.types import (
@@ -235,8 +234,7 @@ class StrategyGenerator:
         """生成 3 个标题"""
         titles = [
             # 方案 A: 精准搜索式
-            f"{pain_point} | 从"
-            f""{product.product_name}"开始改善，坚持3周有奇效",
+            f'{pain_point} | 从"{product.product_name}"开始改善，坚持3周有奇效',
 
             # 方案 B: 解决方案式
             f"保姆级{angle} | {product.product_name}"

@@ -453,8 +453,13 @@ class JSONStorage(BaseStorage):
     def get_stats(self) -> Dict[str, int]:
         """获取存储统计信息"""
         try:
+            note_files = [
+                path
+                for path in (self.root_path / "notes").glob("note_*.json")
+                if "_comments.json" not in path.name
+            ]
             stats = {
-                "notes": len(list((self.root_path / "notes").glob("note_*.json"))) // 2,  # 不计评论文件
+                "notes": len(note_files),
                 "celebrities": len(list((self.root_path / "celebrities").glob("celeb_*.json"))),
                 "performance_metrics": len(list((self.root_path / "analysis" / "performance").glob("*.json"))),
                 "sentiment_reports": len(list((self.root_path / "analysis" / "sentiment").glob("*.json"))),

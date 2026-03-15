@@ -10,7 +10,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional, List
+from datetime import datetime, timezone
+from typing import Any, List, Optional
 
 from xhs_agent.types import Comment, CollectionConfig, NoteWithComments, NoteData
 from .base import BaseCollector
@@ -40,11 +41,11 @@ class CommentAggregator(BaseCollector[Comment]):
     async def init_xhs_client(self):
         """初始化小红书 API 客户端"""
         try:
-            from xiaohongshu_cli.cookies import get_cookies
-            from xiaohongshu_cli.client import XhsClient
+            from xhs_cli.cookies import get_cookies
+            from xhs_cli.client import XhsClient
 
             logger.info("Initializing XHS API client for comment aggregator...")
-            cookies = get_cookies()
+            _browser, cookies = get_cookies()
             self._xhs_client = XhsClient(cookies)
             logger.info("XHS API client initialized successfully")
         except ImportError:
@@ -125,25 +126,10 @@ class CommentAggregator(BaseCollector[Comment]):
         Returns:
             评论数据对象
         """
-        if not self._xhs_client:
-            await self.init_xhs_client()
-
-        try:
-            logger.debug("Fetching comment: %s", comment_id)
-
-            # 获取评论详情
-            comment_data = await self._get_comment_detail(comment_id)
-            if comment_data:
-                logger.debug("Successfully fetched comment: %s", comment_id)
-                note_id = comment_data.get("note_id", "")
-                return self._convert_to_comment(comment_data, note_id)
-            else:
-                logger.warning("Comment not found: %s", comment_id)
-                return None
-
-        except Exception as e:
-            logger.error("Failed to fetch comment %s: %s", comment_id, str(e))
-            raise
+        raise NotImplementedError(
+            "CommentAggregator.collect_single(comment_id) is not supported by current xhs_cli APIs. "
+            "Use collect_async(note_id=...) to fetch comments by note."
+        )
 
     async def collect_note_with_comments(
         self,
@@ -187,7 +173,8 @@ class CommentAggregator(BaseCollector[Comment]):
             评论列表
         """
         try:
-            result = self._xhs_client.get_note_comments(note_id, limit=limit)
+            max_pages = max(1, (limit + 19) // 20)
+            result = self._xhs_client.get_all_comments(note_id, max_pages=max_pages)
             return result.get("comments", [])
         except Exception as e:
             logger.error("Get note comments API error: %s", str(e))
@@ -203,12 +190,35 @@ class CommentAggregator(BaseCollector[Comment]):
         Returns:
             评论详情字典
         """
+        raise NotImplementedError(
+            "Single-comment detail is not exposed by current xhs_cli APIs."
+        )
+
+    @staticmethod
+    def _safe_int(value: Any) -> int:
         try:
-            result = self._xhs_client.get_comment_detail(comment_id)
-            return result
-        except Exception as e:
-            logger.error("Get comment detail API error: %s", str(e))
-            raise
+            return int(str(value).strip())
+        except (TypeError, ValueError):
+            return 0
+
+    @staticmethod
+    def _parse_datetime(value: Any) -> datetime:
+        if isinstance(value, datetime):
+            return value
+        if isinstance(value, (int, float)):
+            ts = float(value)
+            if ts > 1_000_000_000_000:
+                ts /= 1000.0
+            return datetime.fromtimestamp(ts, tz=timezone.utc)
+        if isinstance(value, str):
+            raw = value.strip()
+            if raw.isdigit():
+                return CommentAggregator._parse_datetime(int(raw))
+            try:
+                return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+            except ValueError:
+                return datetime.now(timezone.utc)
+        return datetime.now(timezone.utc)
 
     def _convert_to_comment(
         self,
@@ -225,17 +235,59 @@ class CommentAggregator(BaseCollector[Comment]):
         Returns:
             标准化的 Comment 对象
         """
+        user_info = api_response.get("user_info", {})
+        if not isinstance(user_info, dict):
+            user_info = api_response.get("user", {})
+        if not isinstance(user_info, dict):
+            user_info = {}
+
+        target_comment = api_response.get("target_comment", {})
+        if not isinstance(target_comment, dict):
+            target_comment = {}
+
         return Comment(
-            comment_id=api_response.get("comment_id", ""),
+            comment_id=str(
+                api_response.get("comment_id")
+                or api_response.get("id")
+                or ""
+            ).strip(),
             note_id=note_id,
-            author_id=api_response.get("author_id", ""),
-            author_name=api_response.get("author_name", ""),
-            content=api_response.get("content", ""),
-            likes=api_response.get("likes", 0),
-            replies_count=api_response.get("replies_count", 0),
-            is_reply=api_response.get("is_reply", False),
-            parent_comment_id=api_response.get("parent_comment_id"),
-            published_at=api_response.get("published_at", ""),
+            author_id=str(
+                api_response.get("author_id")
+                or user_info.get("user_id")
+                or user_info.get("userid")
+                or ""
+            ).strip(),
+            author_name=str(
+                api_response.get("author_name")
+                or user_info.get("nickname")
+                or user_info.get("name")
+                or ""
+            ).strip(),
+            content=str(api_response.get("content") or api_response.get("text") or "").strip(),
+            likes=self._safe_int(
+                api_response.get("liked_count")
+                or api_response.get("likes")
+            ),
+            replies_count=self._safe_int(
+                api_response.get("sub_comment_count")
+                or api_response.get("replies_count")
+            ),
+            is_reply=bool(
+                api_response.get("is_reply")
+                or api_response.get("target_comment")
+                or api_response.get("parent_comment_id")
+            ),
+            parent_comment_id=str(
+                api_response.get("parent_comment_id")
+                or target_comment.get("id")
+                or ""
+            ).strip() or None,
+            published_at=self._parse_datetime(
+                api_response.get("published_at")
+                or api_response.get("create_time")
+                or api_response.get("time")
+            ),
         )
 
     async def close(self) -> None:

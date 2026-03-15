@@ -119,18 +119,6 @@ class CelebData(BaseModel):
         default_factory=datetime.now, description="数据采集时间"
     )
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "celeb_id": "user_123",
-                "name": "小红书达人",
-                "followers": 100000,
-                "interaction_rate": 0.05,
-                "content_styles": ["daily_life", "tutorial"],
-            }
-        }
-
-
 class NoteData(BaseModel):
     """笔记基础数据"""
 
@@ -170,21 +158,6 @@ class NoteData(BaseModel):
         None, description="通过搜索什么关键词找到的"
     )
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "note_id": "note_456",
-                "title": "护肤新手必看",
-                "content": "今天分享一下我的护肤心得...",
-                "author_id": "user_123",
-                "author_name": "小红书达人",
-                "likes": 1000,
-                "comments_count": 100,
-                "published_at": "2026-03-14T10:00:00",
-            }
-        }
-
-
 class Comment(BaseModel):
     """评论数据"""
 
@@ -209,20 +182,6 @@ class Comment(BaseModel):
     fetched_at: datetime = Field(
         default_factory=datetime.now, description="采集时间"
     )
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "comment_id": "cmt_789",
-                "note_id": "note_456",
-                "author_id": "user_999",
-                "author_name": "用户评论",
-                "content": "真的好用！已经回购三次了",
-                "likes": 50,
-                "published_at": "2026-03-14T12:00:00",
-            }
-        }
-
 
 # =============================================================================
 # 富化数据模型（包含关联数据）
@@ -308,18 +267,6 @@ class PerformanceMetrics(BaseModel):
         default_factory=datetime.now, description="计算时间"
     )
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "note_id": "note_456",
-                "engagement_rate": 0.08,
-                "heat_score": 75.5,
-                "virality_score": 65.0,
-                "conversion_potential": 72.0,
-            }
-        }
-
-
 class SentimentReport(BaseModel):
     """评论情感分析报告"""
 
@@ -378,22 +325,6 @@ class SentimentReport(BaseModel):
         default_factory=datetime.now, description="分析时间"
     )
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "note_id": "note_456",
-                "total_comments": 100,
-                "positive_ratio": 0.75,
-                "neutral_ratio": 0.15,
-                "negative_ratio": 0.10,
-                "top_pain_points": ["黑眼圈", "细纹"],
-                "top_emotions": ["获得感", "安心感"],
-                "purchase_drivers": ["真实有效", "快速见效"],
-                "key_topics": {"补水": 45, "保湿": 38, "提亮": 32},
-            }
-        }
-
-
 class StrategySignals(BaseModel):
     """策略信号（分析阶段输出，用于策略生成）"""
 
@@ -439,22 +370,6 @@ class StrategySignals(BaseModel):
         None, description="来自哪个情感分析"
     )
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "note_id": "note_456",
-                "top_pain_point": "黑眼圈困扰",
-                "top_performing_frames": [
-                    "问题-分析-解决方案",
-                    "对比式转变",
-                ],
-                "user_emotions": ["获得感", "安心感"],
-                "content_angle_recommendation": "黑眼圈自救指南",
-                "signal_confidence": 0.85,
-            }
-        }
-
-
 # =============================================================================
 # 产品信息模型
 # =============================================================================
@@ -497,21 +412,6 @@ class ProductInfo(BaseModel):
     required_disclaimers: List[str] = Field(
         default_factory=list, description="需要的免责声明"
     )
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "product_name": "某品牌蓝光眼膜",
-                "category": "skincare",
-                "core_selling_points": ["深层补水", "淡化细纹", "改善黑眼圈"],
-                "price": 79.0,
-                "price_tier": "mid_range",
-                "target_audience": "25-35岁职场女性",
-                "brand_name": "某品牌",
-                "compliance_level": "low",
-            }
-        }
-
 
 # =============================================================================
 # 最终输出模型
@@ -587,24 +487,6 @@ class XhsStrategyPlan(BaseModel):
         description="策略信心度"
     )
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "product_name": "某品牌蓝光眼膜",
-                "target_celebrity": "小红书达人",
-                "title_options": [
-                    "眼膜 | 25岁黑眼圈困扰3周逆袭记，终于不用遮瑕了",
-                    "保姆级黑眼圈护理指南 | 这款眼膜让我重获自信",
-                    "我从不用遮瑕了，黑眼圈眼膜的秘密在这里",
-                ],
-                "content_script": "引入段...\n主体段...\n总结段...",
-                "hashtags": ["护肤", "黑眼圈", "眼膜"],
-                "compliance_status": "passed",
-                "confidence_score": 0.85,
-            }
-        }
-
-
 # =============================================================================
 # 采集配置模型
 # =============================================================================
@@ -639,21 +521,6 @@ class CollectionConfig(BaseModel):
         description="数据存储路径"
     )
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "concurrent_requests": 5,
-                "request_timeout": 30,
-                "retry_attempts": 3,
-                "rate_limit_delay": 1.0,
-                "max_notes_per_search": 100,
-                "max_comments_per_note": 200,
-                "storage_backend": "json",
-                "storage_path": "data/",
-            }
-        }
-
-
 # =============================================================================
 # 采集结果模型
 # =============================================================================
@@ -671,13 +538,3 @@ class CollectionResult(BaseModel):
         default_factory=datetime.now, description="操作时间"
     )
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "success": True,
-                "items_collected": 95,
-                "items_failed": 5,
-                "error_message": None,
-                "duration_seconds": 45.3,
-            }
-        }
