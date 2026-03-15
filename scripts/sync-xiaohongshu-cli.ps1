@@ -6,6 +6,9 @@ param(
     [switch]$SkipChecks,
     [switch]$SkipAnalysis,
     [string]$AnalysisOutputFile = "",
+    [switch]$PushPointer,
+    [string]$PushRemote = "origin",
+    [string]$PushBranch = "",
     [switch]$NoCommitPointer
 )
 
@@ -21,6 +24,30 @@ function Invoke-Git {
     if ($LASTEXITCODE -ne 0) {
         throw "git command failed in ${RepoPath}: git $($Args -join ' ')"
     }
+}
+
+function Get-GitSingleLine {
+    param(
+        [Parameter(Mandatory = $true)][string]$RepoPath,
+        [Parameter(Mandatory = $true)][string[]]$Args
+    )
+    $output = & git -C $RepoPath @Args
+    if ($LASTEXITCODE -ne 0) {
+        throw "git command failed in ${RepoPath}: git $($Args -join ' ')"
+    }
+    if ($null -eq $output) {
+        return ""
+    }
+    return ($output | Select-Object -First 1).ToString().Trim()
+}
+
+function Test-GitRefExists {
+    param(
+        [Parameter(Mandatory = $true)][string]$RepoPath,
+        [Parameter(Mandatory = $true)][string]$Ref
+    )
+    & git -C $RepoPath rev-parse --verify --quiet $Ref *> $null
+    return ($LASTEXITCODE -eq 0)
 }
 
 function Invoke-Step {
@@ -50,6 +77,42 @@ if (-not (Test-Path $submodule)) {
 }
 if (-not $SkipAnalysis -and -not (Test-Path $analysisScript)) {
     throw "Analysis script not found: $analysisScript"
+}
+if ($PushPointer -and $NoCommitPointer) {
+    throw "-PushPointer cannot be used with -NoCommitPointer."
+}
+
+$currentBranch = Get-GitSingleLine -RepoPath $root -Args @("branch", "--show-current")
+if ([string]::IsNullOrWhiteSpace($currentBranch)) {
+    throw "Current branch is detached; cannot determine push branch."
+}
+if ([string]::IsNullOrWhiteSpace($PushBranch)) {
+    $candidate = $currentBranch
+    if (Test-GitRefExists -RepoPath $root -Ref "$PushRemote/$candidate") {
+        $PushBranch = $candidate
+    }
+    elseif (Test-GitRefExists -RepoPath $root -Ref "$PushRemote/main") {
+        $PushBranch = "main"
+    }
+    else {
+        throw (
+            "Cannot infer remote push branch. Tried $PushRemote/$candidate and $PushRemote/main. " +
+            "Please set -PushBranch explicitly."
+        )
+    }
+}
+elseif (-not (Test-GitRefExists -RepoPath $root -Ref "$PushRemote/$PushBranch")) {
+    throw "Remote ref not found: $PushRemote/$PushBranch. Please set a valid -PushBranch."
+}
+
+Invoke-Git -RepoPath $root -Args @("fetch", $PushRemote, "--prune")
+$preAheadBehind = Get-GitSingleLine -RepoPath $root -Args @("rev-list", "--left-right", "--count", "HEAD...$PushRemote/$PushBranch")
+$preAhead = 0
+if (-not [string]::IsNullOrWhiteSpace($preAheadBehind)) {
+    $parts = $preAheadBehind -split "\s+"
+    if ($parts.Count -ge 1) {
+        $preAhead = [int]$parts[0]
+    }
 }
 
 Invoke-Step -Title "Init Submodule Mapping" -Action {
@@ -99,6 +162,7 @@ if ($didStash) {
 }
 
 $newHead = (& git -C $submodule rev-parse --short HEAD).Trim()
+$pointerCommitted = $false
 
 if (-not $NoCommitPointer -and $oldHead -ne $newHead) {
     Invoke-Step -Title "Commit Submodule Pointer Bump" -Action {
@@ -110,6 +174,26 @@ if (-not $NoCommitPointer -and $oldHead -ne $newHead) {
             "--",
             $SubmodulePath
         )
+    }
+    $pointerCommitted = $true
+}
+
+if ($PushPointer) {
+    if (-not $pointerCommitted) {
+        Write-Host ""
+        Write-Host "=== Push Pointer ==="
+        Write-Host "Skip push: submodule pointer unchanged, no new commit."
+    }
+    elseif ($preAhead -gt 0) {
+        throw (
+            "Auto push aborted: root branch already had $preAhead local commit(s) ahead of " +
+            "$PushRemote/$PushBranch before this sync. Push manually to avoid unintended commits."
+        )
+    }
+    else {
+        Invoke-Step -Title "Push Pointer Commit" -Action {
+            Invoke-Git -RepoPath $root -Args @("push", $PushRemote, "HEAD:$PushBranch")
+        }
     }
 }
 
@@ -167,3 +251,5 @@ Write-Host "New HEAD: $newHead"
 Write-Host "Dirty before sync: $isDirty"
 Write-Host "AutoStash used: $didStash"
 Write-Host "Analysis executed: $(-not $SkipAnalysis)"
+Write-Host "Pointer committed: $pointerCommitted"
+Write-Host "Push requested: $PushPointer"

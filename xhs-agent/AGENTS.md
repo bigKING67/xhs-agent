@@ -12,6 +12,7 @@
 - Sync upstream via script (recommended, from repo root): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-xiaohongshu-cli.ps1 -AutoStash`
 - Analyze upstream impact before patching (from repo root): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/analyze-xiaohongshu-cli-update.ps1`
 - Sync + analyze + export report (recommended CI-like flow): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-xiaohongshu-cli.ps1 -AutoStash -AnalysisOutputFile xhs-agent/data/upstream-analysis-latest.md`
+- Sync + analyze + auto-push pointer commit (safe mode): `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-xiaohongshu-cli.ps1 -AutoStash -PushPointer -AnalysisOutputFile xhs-agent/data/upstream-analysis-latest.md`
 
 ## Project Conventions
 - Keep `xhs_agent/types.py` models and pipeline output fields consistent.
@@ -26,6 +27,9 @@
 - Preferred one-command flow:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-xiaohongshu-cli.ps1 -AutoStash`
   - Optional report file: append `-AnalysisOutputFile xhs-agent/data/upstream-analysis-latest.md`
+  - Auto push pointer (optional): append `-PushPointer`
+- Safety note for `-PushPointer`:
+  - Script aborts auto-push if root branch already had local commits ahead of remote before sync, to avoid pushing unrelated commits.
 - If submodule has local changes, stash before pull:
   - `cd ../xiaohongshu-cli`
   - `git stash push -u -m "temp-before-upstream-sync"`
